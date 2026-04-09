@@ -1,0 +1,56 @@
+name: Clonar Voz (Python + Java)
+
+on:
+  workflow_dispatch:
+    inputs:
+      text:
+        description: 'Texto que quieres que diga la voz clonada'
+        required: true
+        default: 'Hola, esta es mi voz clonada exactamente tal cual.'
+      language:
+        description: 'Idioma (es para español)'
+        required: false
+        default: 'es'
+
+jobs:
+  clonar-voz:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: ☕ Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: 📦 Instalar ffmpeg (necesario para audio)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: 📦 Instalar Torch (CPU) + TTS
+        run: |
+          pip install --upgrade pip
+          pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install TTS
+
+      - name: 🔨 Compilar Java
+        run: javac VoiceCloner.java
+
+      - name: 🎤 Ejecutar clonador de voz (Java → Python)
+        run: |
+          java VoiceCloner "${{ github.event.inputs.text }}" "Shakira_Feliz......turan.wav" "output.wav" "${{ github.event.inputs.language }}"
+
+      - name: 📤 Subir audio generado
+        uses: actions/upload-artifact@v4
+        with:
+          name: voz-clonada
+          path: output.wav
