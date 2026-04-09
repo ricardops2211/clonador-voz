@@ -24,9 +24,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'                    # ← Caché automático de pip
+          cache: 'pip'                    # ← Ahora funciona porque tenemos requirements.txt
 
-      - name: 📦 Cachear modelo XTTS-v2 (esto es lo que más ahorra tiempo)
+      - name: 📦 Cachear modelo XTTS-v2 (el que más tiempo ahorra)
         uses: actions/cache@v4
         with:
           path: ~/.local/share/tts
@@ -45,18 +45,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: 📦 Instalar Torch CPU + TTS (rápido gracias al caché)
+      - name: 📦 Instalar Torch CPU + TTS
         run: |
           pip install --upgrade pip
           pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install TTS
+          pip install -r requirements.txt
 
       - name: 🔨 Compilar Java
         run: javac VoiceCloner.java
 
       - name: 🎤 Ejecutar clonador de voz (Java → Python)
         run: |
-          java VoiceCloner "${{ github.event.inputs.text }}" "voz_referencia.wav" "output.wav" "${{ github.event.inputs.language }}"
+          java VoiceCloner "${{ github.event.inputs.text }}" "Shakira_Feliz......turan.wav" "output.wav" "${{ github.event.inputs.language }}"
 
       - name: 📤 Subir audio generado
         uses: actions/upload-artifact@v4
